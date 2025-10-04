@@ -1,0 +1,534 @@
+name: Backfill release
+
+on:
+  push:
+
+env:
+  ARDUINO_BOARD_MANAGER_ADDITIONAL_URLS: "http://arduino.esp8266.com/stable/package_esp8266com_index.json https://espressif.github.io/arduino-esp32/package_esp32_dev_index.json"
+
+jobs:
+  backfill:
+    strategy:
+      fail-fast: false
+      matrix:
+        commit:
+          - 89381a50f74f078ac876fe53b8cff2675d0a43e7 # 0.1b
+          # - e5ec4899e1fd377ef5b653060de6399bac89f3bb # 0.1b-ak-2
+          - e1d4b532aea68deb0592d8d959d8f5454ebaa30e # 0.1b-mt-1 (0.1b tag)
+          # - 4cc6900ae23df84723562a3ef5c947a355d7872a # 0.1b-iy-1
+          # - 63e0de53d997e9e641e1caa2bfac96a638274c3d # 0.1b-iy-2
+          # - 2007152d2c3fccead98046c4ef0248694407eefc # 0.1b-iy-3
+          # - 2d04c093218ecb5eab4b609260adf58946d8f477 # 0.1b-iy-4
+          # - 5aa0f95c74351178c4873056884945db584379f2 # 0.1b-iy-5
+          # - e9a46345bcae26ae25dbfe0da51a568de969da5b # 0.1b-iy-6
+          # - 2f835fe8e25ccd9f61918b339359667fbb22f681 # 0.1b-ak-1
+          # - 51d5629f8bfaad2721a1bd4c80bcf0f328a62bb5 # 0.1b-iy-7
+          # - d72b280ae8c35c3e1e49cd3736f3b14e364ed094 # 0.1b-ak-5
+          # - ba2e509678d1bbf3d6bec2754efa61adc3a86e2e # 0.1b-ak-10
+          # - 35bb73f13471642e55dea40a54b229b8b9bd4547 # 0.1b-ak-11
+          # - 228f2ef5bd9bca279c25b531b994de2424dba37e # 0.1b-iy-test-release
+          - c34a23c661c6deb7776fe30cc1537c13503a8a92 # 0.2b
+          # - 11ad9b95a41b43d704333d0d6b1c1731e15c91b4 # 0.2b-ak-1
+          # - 44b479f45adbbe3aee9b56304333f97acb34ea03 # 0.2b-iy-2
+          # - 05d4e3f147fe824b62633fefe80397fd4a81b11b # 0.2b-iy-3
+          # - 9b3e7ff0b3b6c22dea559bc92e8fba137446be75 # 0.2b-ak-10
+          # - d4105c6cf81456519b549d375e63b065cc28c8a3 # 0.2b-iy-11
+          # - fc804c4ddf054a1f501e1705159b1aa3938f2e3d # 0.2b-iy-12
+          # - 8fd98340c95eb8bd7b9a6e380fb380995b607a83 # 0.2b-iy-13
+          # - 08c6379d45322c4f8e2df1a236df8ce16302d2ff # 0.2b-iy-14
+          # - 335dcc3603f8be1ed26b090c68b0f358cfbce13c # 0.2b-iy-15
+          # - 88995b1ee35f9fefe7b1156b8b63c67b49256284 # 0.2b-iy-16
+          # - c4331f8f6c58a3a69db87b5d52117c75494b7408 # 0.2b-iy-18
+          # - 1129ec38686a2e3cffd813ac4d64662820aae7bc # 0.3b
+          # - 3774443162810dcfb694915db069a31a987bc781 # 0.3b-iy-1
+          # - 23dcc8c2ebe4197ccb6a0785467835d26b79e4d5 # 0.4b
+          # - a8de10782333ad3417939255286d6efd927e4870 # 0.4b-iy-1
+          # - 1c23db0256dbffd5e5aec7166b0d3fc36729db94 # 0.4b-iy-2
+          # - 19843fa2cbfb9ee020b5b1a4114a1f55fc8ae63c # 0.4b-iy-3
+          # - a2c02099d82cd98a37d5a6cf085e9cf58dd1e263 # 0.4b-iy-4
+          - 42925750b7d36ab1ad7ebb2d34096a7334945685 # 0.5b
+          # - 252bb84dd5301b501957e2710509e9c3d40146a3 # 0.5b-iy-1
+          # - cd1d2dd5f425316280b7a0d1d32f9f0897c95dce # 0.5b-iy-2
+          # - e4cf3cbb11a3fe692af92cce59121153870cea88 # 0.5b-iy-3
+          # - fead3ed9bb57ec4486a4c48f32abb2dac0139801 # 0.5b-iy-4
+          # - 9d683a24cff62f73acfd1700f52cec04f793200a # 0.5b-iy-5
+          # - 81db20ae8deffd43225948ae0c6ef4b57a2aef54 # 0.5b-iy-6
+          # - 7c43bf2cce193713e7c1200ac05de48828167235 # 0.5b-iy-7
+          # - 47f5cecb2dd7d5ea14cd011c95ca6d6330241b95 # 0.5b-iy-8
+          # - d42cbe8a01ef1640dfe1136fe2f00e4608bd1da4 # 0.5b-iy-9
+          - 4e2365d462d2960e929ea049e779b31c1c43d77b # 0.6b
+          # - c7eb1645fef0e0fe6c18cc434ee533ec364a8f6a # 0.6b-iy-1
+          - 8d5a5e2d1cdf5b8543a266421d276df3b1b60754 # 0.6c
+          # - b461605ada5d8a5586ba5db8f5774f573bb461ec # 0.6b-iy-2
+          # - f0cee1e5ed899704fd18ae4724c4af9817c8aadf # 0.6c-iy-2
+          - 2f4e4f3790506903830740a0cb7a951795e8829c # 0.7
+          - e651e02a1e898e974d6ae849853ea8ed3f14c505 # 0.8b
+          # - c6b696ea1cd53735cec6d1185ae11ffa55331862 # 0.8b-iy-1
+          # - 923736fc4e7c0962e066fb70e0faf8b76a26bf0b # 0.8b-iy-2
+          # - 20d68445e353ba5c76674c720d7e1855582c12c7 # 0.8b-iy-3
+          # - 4d226beeca77ff4b5bf47c16ba49fac6da694d8d # 0.8b-iy-4
+          # - c7322aa76afbd7f705cef69049ce54eca15e469d # 0.8b-iy-6
+          # - dcfc51878a1d88d0e71b497b962134869352a8d3 # 0.8b-iy-7
+          # - 551afb5e5135ae985fe63a4112c03598f9ef3a14 # 0.8b-iy-8
+          # - 5ce624272e58b5c2cc8830ffad4e8a8acabc2c4c # 0.8b-iy-9
+          # - 04a27ade5e3babd37b7398cf936cce7fbdef180f # 0.8b-iy-10
+          # - 863b45d14362ec933aba07e24c1ba815653c46d3 # 0.8b-iy-11
+          # - 06501587ac6469455afa4464c1a7484c9017822a # 0.8b-iy-12
+          # - b0c05181e9e178f93b409e0262f40252074c6a18 # 0.8b-iy-13
+          # - ebdde18171b3db23f7a2debb6ce67742e9ff7c18 # 0.8b-iy-14
+          # - dbf98669447eafe82bff1e0eacb8d242e7915fd6 # 0.8b-iy-15
+          # - dcf4c019f1b1d119a390bb0077fbae7759deb0b7 # 0.8b-iy-17
+          # - 6083599103a0879eca1b4ad1823d9040bb69901f # 0.8b-iy-18
+          # - d0bf1306b92f08f496be6ef6154ec5102e21398a # 0.8b-iy-19
+          # - 9c98259da82a92c67190cccafa1c7b4797c78489 # 0.8b-iy-20
+          # - 735cbffaf62154052c55246b5efcb4c4a5a5222a # 0.8b-iy-21
+          # - 10e69abec04ed475dd0e74ef3df59ff3f371cf59 # 0.8b-iy-23
+          # - e7d75fe4e6d3ef8380330b7cc851304e78d03bd1 # 0.8b-iy-25
+          # - a72f445d605b4436d70521525130de6d6522fc6d # 0.8b-iy-26
+          # - 0894f6a74f14b22dce0ce0909a919bcec7e35981 # 0.8b-iy-28
+          # - a2e2b4b74c0b322f27655d78f40f92d32cb66935 # 0.8b-iy-29
+          # - 1852c6bcbdefdec371a03a3ba6179becfa020fc8 # 0.8b-iy-31
+          - c08377209c3e0c61fd99201f560fd62b46797edf # 0.9b
+          # - bfd3ee91859df65de380d088b6a1c945cf565a9a # 0.9b-iy-1
+          # - 92b349b616d2e947384d808a8d429055788d07aa # 0.9b-iy-2
+          # - 1bbd2f46552d59a20e9cfc1648cfacc4403140f9 # 0.9b-iy-3
+          # - d6eaf74ee9921ddcd27524f0e53d57e58cdc66dd # 0.9b-iy-4-LittleFS
+          # - ab8813b745fd17d01b0e0c28c054ffebf425ec1d # 0.9b-iy-5-LittleFS
+          # - e6539c183c5ab42d73819ee8d32f9f436596750c # 0.9b-iy-6-LittleFS
+          # - ebd9eec0526e76a54d473467107416f293ea0b14 # 0.9b-iy-7-LittleFS
+          # - 531bee6560eaf7490f7717caa87f3dbda87aa85f # 0.9b-iy-8-LittleFS
+          # - 794a10d809d7e33f9fdf38a3fa7b9d02a204dc6b # 0.9b-iy-9-LittleFS
+          # - f954ed9485e446f114fc62b988b0c8b030cbb0d9 # 0.9b-iy-10-LittleFS
+          # - 9fd54c7f0526e823bd00507f9b33cb8c69d3aa20 # 0.9b-iy-11-LittleFS
+          # - 4802e5bd5075be7c8f1c570c361a3f65634fe5df # 0.9b-iy-12-LittleFS
+          # - d88f11e8b9f4147e5bc5b048ce8405c905c04ec2 # 0.9b-iy-14-LittleFS
+          # - c34df624d885cc8e4fd13317bfef2e38dcd169c8 # 0.9b-iy-15-LittleFS
+          # - b94c639f305c0aa902b22a71ee9ec10755b1361f # 0.9b-iy-16-LittleFS
+          # - 0b6fc84409bc1d040b26f8fb3767eedafd83219a # 0.9b-iy-17-LittleFS
+          # - 60bcdfa2c81bcaee9d4a36a05b6aa591eec9c5f6 # 0.9b-iy-18-LittleFS
+          # - ec0ab8963e964856c4286474797f4a9064fde98f # 0.9b-iy-19-LittleFS
+          # - de110e0e99b5840c363d22a5050999f352f50dd9 # 0.9b-iy-20-LittleFS
+          # - 85bce713f72d27cbc329e8bcc52771016111cbdc # 0.9b-iy-22-LittleFS
+          # - 711f8b75a45bc3299e15ffa765872b620241adf3 # 0.9b-iy-23-LittleFS
+          - 2d4c58f104e9a9b43ea30ec032b9326876ea3554 # 1.0
+          # - 95a2674f1fd2fe2a9425f3f2c1dc7f59d71ce503 # 1.0-iy-1
+          # - 462268bdf118e02bd61f20f6fa9e6ed9db3b0d30 # 1.0-iy-2
+          # - 3baa8379c21282ab11fea5b4846967509627f534 # 1.0-iy-3
+          # - 52121286cfd79853ab764a7bf5a113166c53926a # 1.0-iy-4
+          # - 210206dec09b1e69cc5b2fcac40521a18cc665fd # 1.0-iy-5
+          # - a06c9fa5647fc0762eec3a87c155b53bd1d90b14 # 1.0-iy-6
+          # - a2133527448236e445d74032c5d52a2e8266a580 # 1.0-iy-7
+          # - b415315025df05e1cbc8bb630f8a50665f6fa2b5 # 1.0-iy-8
+          # - af65a67d1be3f6761b8282d66522e30fc15a2f86 # 1.0-iy-10
+          # - b6a738ea5b8c04f7d3b717683f8fcffb50cb0f83 # 1.0-iy-12
+          # - ab085e66f4d3816684f997591c242374d9fbaf01 # 1.0-iy-13
+          # - 7886b0eb822da7cf2051214457b371ae0b88314a # 1.0-iy-14
+          # - 44be4d6c897235cdfaecbf5211512b573ac672a9 # 1.0-iy-16
+          # - 961a0c0d2610fe3529da24a106b423875b46a8c8 # 1.0-iy-20
+          # - 82a1bf7a3511bc570ae78b57970d0842b894510d # 1.0-iy-21
+          # - 1b0f565f96efcc6c2efa7b50737958989b54f0bf # 1.0-iy-cm-01
+          # - c52de420f8eb5732f5125ef2dd11674950ac11de # 1.0-iy-cm-02
+          # - b911d8266d83e562245d76033b8a430871135371 # 1.0-iy-cm-03
+          # - 84c6c9264fbf941048b6a76d8fbfa5cee0d1d148 # 1.0-iy-cm-PR70
+          # - 90296838d0ab831c4ff3bd0dbc3f13d3e49ce5db # 1.0-iy-cm-05
+          # - 62186fe29bec48851365227014a9a7b47eafb569 # 1.0-iy-cm-06
+          # - c6157f63103100120b2948211adb7054a38443c8 # 1.0-iy-cm-07
+          # - 0abbdb13d64ab677ec07d73148361a36a76bc932 # 1.0-iy-cm-08
+          # - 850aebaef6a375251b5248efebea9cef4d62731f # 1.0-iy-cm-09
+          # - 87923d54553d9b1ef6442d0e2eb994f279e56b76 # 1.0-iy-cm-10
+          # - 7c94597e46e68e86708b947dfdf7e7a7d7104312 # 1.0-iy-cm-11
+          # - 5d9a819068d0185ba0e921254d5b09ea59840d59 # 1.0-iy-cm-12
+          # - 035eefb9d4fca1c01e8928413aedae9521aa9884 # 1.0-iy-cm-13
+          # - c66b2ff1523c1a071fc3092605b5be6292f3b793 # 1.0-iy-cm-14
+          # - 10f088f9e570bef77a31a51b85788b3e92db3e86 # 1.0-iy-cm-15
+          - b8c0e5843c079edef657af7ff5c23b1596a824c1 # 2.0
+          # - 6acf310e6d985341345e98a9b72199f228eb24d7 # 2.1-iy-1
+          # - 063aaf6b05f0757092144d5176b5b73dfdf7c15a # 2.1-iy-2
+          # - 9a95d9ef393fc34d5a45ae6328ea756fde0d47f1 # 2.1-iy-3
+          # - bbb6f09d6ded4913dbe5f26fe641262b8e85f9a3 # 2.1-iy-4
+          # - 3444edec070caa97636eedd921d702a936413af0 # 2.1-iy-5
+          # - 696bd74a31584b4a857357e65e4549a7096e344f # 2.1-iy-6
+          # - 05abb34d5a577de0cac67da4b61229526c472bfa # 2.1-iy-8
+          # - 1ab7b766254b586e397dc65ebc957d27a5f47967 # 2.1-iy-9
+          # - fe467752db9e4784906803690cf4c217bd62e3d2 # 2.1-iy-10
+          # - d9caec1423a52ee63214cb37ae1cbe60ca443cc7 # 2.1-iy-12
+          # - 5d780feae2e32194ef399afb692dbd0dad02770f # 2.1-iy-PR76
+          # - c9c4c76c9af26b51465190ac50a7728961de7e79 # 2.2-iy-1
+          # - 505defd365c8eda10b9e1ec4f54a2d58e70c3ceb # 2.2-iy-2
+          # - 6b2933e6451e216cb3bbb601cd0a54cf2cb0b2bd # 2.2-iy-3
+          # - 7a7ecfd53c5d1d937e20715caa97a47544ede035 # 2.2-iy-3-PR78
+          - 5c3558ad714ecc36a1e51c9bd8c45dd49ff3a923 # 3.0
+          - 57e8567af3359158bc09884500891726751e6116 # 3.1
+          # - 878f1b02880f3faced705813de2fc21d4df8397f # 3.1-setbuffer
+          # - 314f542993a53f38e257aac9902ad0e437a4e7ab # 3.2-beta
+          # - 749fc5613c8590789bd627d0d7c1132a6c894123 # 3.2-beta-1
+          # - bc93d37a80af1f99e12d494f4fb9f92713bf2a5f # 3.2-beta-2
+          # - 3b257db08303629c33e6bce27b0c3daca91d0aea # 3.2-beta-3
+          - 3b9f724ca45f81e8b1403901a3e214aefc5b279d # 3.2
+          - 2a4153257adf72e600d705f0e4e87ad33eb79fff # 3.2.1
+          - 9ff6e7e0fb8d29720cff99fe81d1274c6d46b196 # 3.2.2
+          # - cd2fb57cb70e3a76045e5601fe1fab1ae8b6a9c0 # 3.2.3-beta
+          - f15a0fe8df6be3c5873c06b0d2b8016f09e4c98d # 3.2.3
+          # - 494b3065034f71515c847a3030288b8265590e38 # 3.2.4-beta
+          # - d1abfdbd599f8120439783d4a50b9637ba16d567 # 3.2.4-beta-2
+          - 6a3200301fd26446a06eceea28c4f6f5d9fce37c # 3.5
+          - 479edba39784bf30d98956848f4b18175df30f77 # 3.6
+          - 5f2a2abd16b32d9d05b5ebffa0a1efd1ced3e636 # 3.61
+          - f484d80c25b62a9060fd72c33568b411920f61ef # 3.62
+          - 4e8cfd942d6a228508f97e022aecc9f5617fc3b9 # 3.7
+          - 292bb7c0eb8154d46c27113030429c72e2c309e2 # 3.8
+          - 70ef308124b07b305eb921e2baadd4a47bf1949b # 3.9
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Find version and date
+        id: find-version
+        env:
+          COMMIT: ${{ matrix.commit }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DATE="$(
+            gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/${GITHUB_REPOSITORY}/commits/${COMMIT} \
+              | jq -r '.commit.committer.date' \
+              | grep -oP '\d{4}-\d{2}-\d{2}'
+          )"
+          VERSION="$(
+            gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/${GITHUB_REPOSITORY}/contents/HeishaMon/version.h?ref=${COMMIT} \
+              | jq -r '.content' \
+              | base64 -d \
+              | grep -oP 'static const char\s?\*\s?heishamon_version = "\K[^"]+'
+            )"
+
+           # Check date and version are valid
+          if [ -z "$DATE" ] || ! echo "$DATE" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+            echo "Invalid date: $DATE" >&2
+            exit 1
+          fi
+          if [ -z "$VERSION" ] || ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?[bc]?(-.+)?$'; then
+            echo "Invalid version: $VERSION" >&2
+            exit 1
+          fi
+
+          echo "date=${DATE}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          echo "DATE: $DATE"
+          echo "VERSION: $VERSION"
+
+          echo "commit=${COMMIT}" >> $GITHUB_OUTPUT
+
+      - name: Find arduino-cli version by date
+        id: find-arduino-cli-version
+        env:
+          DATE: ${{ steps.find-version.outputs.date }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          ARDUINO_CLI_VERSION="$(./scripts/get-version-by-date.sh arduino/arduino-cli ${DATE})"
+
+          echo "arduino-cli-version=${ARDUINO_CLI_VERSION}" >> $GITHUB_OUTPUT
+          echo "Arduino CLI version: $ARDUINO_CLI_VERSION"
+
+      - name: Find platform versions by date
+        id: find-platform-versions
+        env:
+          DATE: ${{ steps.find-version.outputs.date }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          ESP8266_VERSION="$(./scripts/get-version-by-date.sh esp8266/Arduino ${DATE})"
+          ESP32_VERSION="$(./scripts/get-version-by-date.sh espressif/arduino-esp32 ${DATE})"
+
+          echo "esp8266-version=${ESP8266_VERSION}" >> $GITHUB_OUTPUT
+          echo "ESP8266 version: $ESP8266_VERSION"
+          echo "esp32-version=${ESP32_VERSION}" >> $GITHUB_OUTPUT
+          echo "ESP32 version: $ESP32_VERSION"
+
+      - name: Find library versions by date
+        id: find-library-versions
+        env:
+          DATE: ${{ steps.find-version.outputs.date }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          DOUBLERESETDETECT_VERSION="$(./scripts/get-version-by-date.sh jenscski/DoubleResetDetect ${DATE})"
+          WIFIMANAGER_VERSION="$(./scripts/get-version-by-date.sh tzapu/WiFiManager ${DATE})"
+          PUBSUBCLIENT_VERSION="$(./scripts/get-version-by-date.sh knolleary/PubSubClient ${DATE})"
+          ARDUINOJSON_VERSION="$(./scripts/get-version-by-date.sh bblanchon/ArduinoJson ${DATE})"
+          DALLASTEMPERATURE_VERSION="$(./scripts/get-version-by-date.sh milesburton/Arduino-Temperature-Control-Library ${DATE} true)"
+          ONEWIRE_VERSION="$(./scripts/get-version-by-date.sh PaulStoffregen/OneWire ${DATE})"
+          RINGBUFFER_VERSION="$(./scripts/get-version-by-date.sh Locoduino/RingBuffer ${DATE})"
+          ADAFRUITNEOPIXEL_VERSION="$(./scripts/get-version-by-date.sh adafruit/Adafruit_NeoPixel ${DATE})"
+          WEBSOCKETS_VERSION="$(./scripts/get-version-by-date.sh Links2004/arduinoWebSockets ${DATE})"
+
+          if [ "$WIFIMANAGER_VERSION" == "0.14.0" ]; then
+            WIFIMANAGER_VERSION="0.15.0-beta"
+          fi
+          if [ "$DALLASTEMPERATURE_VERSION" == "3.9.1" ]; then
+            DALLASTEMPERATURE_VERSION="3.9.0"
+          fi
+          if [ "$DALLASTEMPERATURE_VERSION" \> "4.0.3" ]; then
+            DALLASTEMPERATURE_VERSION="4.0.3"
+          fi
+
+          echo "doublerseresetdetect-version=${DOUBLERESETDETECT_VERSION}" >> $GITHUB_OUTPUT
+          echo "DoubleResetDetect version: $DOUBLERESETDETECT_VERSION"
+          echo "wifimanager-version=${WIFIMANAGER_VERSION}" >> $GITHUB_OUTPUT
+          echo "WiFiManager version: $WIFIMANAGER_VERSION"
+          echo "pubsubclient-version=${PUBSUBCLIENT_VERSION}" >> $GITHUB_OUTPUT
+          echo "PubSubClient version: $PUBSUBCLIENT_VERSION"
+          echo "arduinojson-version=${ARDUINOJSON_VERSION}" >> $GITHUB_OUTPUT
+          echo "ArduinoJson version: $ARDUINOJSON_VERSION"
+          echo "dallastemperature-version=${DALLASTEMPERATURE_VERSION}" >> $GITHUB_OUTPUT
+          echo "DallasTemperature version: $DALLASTEMPERATURE_VERSION"
+          echo "onewire-version=${ONEWIRE_VERSION}" >> $GITHUB_OUTPUT
+          echo "OneWire version: $ONEWIRE_VERSION"
+          echo "ringbuffer-version=${RINGBUFFER_VERSION}" >> $GITHUB_OUTPUT
+          echo "RingBuffer version: $RINGBUFFER_VERSION"
+          echo "adafruitneopixel-version=${ADAFRUITNEOPIXEL_VERSION}" >> $GITHUB_OUTPUT
+          echo "Adafruit NeoPixel version: $ADAFRUITNEOPIXEL_VERSION"
+          echo "websockets-version=${WEBSOCKETS_VERSION}" >> $GITHUB_OUTPUT
+          echo "WebSockets version: $WEBSOCKETS_VERSION"
+
+      - name: Install arduino-cli
+        uses: arduino/setup-arduino-cli@v2
+        with:
+          version: ${{ steps.find-arduino-cli-version.outputs.arduino-cli-version }}
+
+      - name: Install platform
+        env:
+          VERSION: ${{ steps.find-version.outputs.version }}
+          VERSION_ESP8266: "${{ steps.find-platform-versions.outputs.esp8266-version }}"
+          VERSION_ESP32: "${{ steps.find-platform-versions.outputs.esp32-version }}"
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install "esp8266:esp8266@${VERSION_ESP8266}"
+          if ! [ "$VERSION" \< "3.5" ]; then
+            arduino-cli core install "esp32:esp32@${VERSION_ESP32}"
+          fi
+
+      - name: Install dependencies
+        env:
+          VERSION: ${{ steps.find-version.outputs.version }}
+          VERSION_DOUBLERESETDETECT: "${{ steps.find-library-versions.outputs.doublerseresetdetect-version }}"
+          VERSION_WIFIMANAGER: "${{ steps.find-library-versions.outputs.wifimanager-version }}"
+          VERSION_PUBSUBCLIENT: "${{ steps.find-library-versions.outputs.pubsubclient-version }}"
+          VERSION_ARDUINOJSON: "${{ steps.find-library-versions.outputs.arduinojson-version }}"
+          VERSION_DALLASTEMPERATURE: "${{ steps.find-library-versions.outputs.dallastemperature-version }}"
+          VERSION_ONEWIRE: "${{ steps.find-library-versions.outputs.onewire-version }}"
+          VERSION_RINGBUFFER: "${{ steps.find-library-versions.outputs.ringbuffer-version }}"
+          VERSION_ADAFRUITNEOPIXEL: "${{ steps.find-library-versions.outputs.adafruitneopixel-version }}"
+          VERSION_WEBSOCKETS: "${{ steps.find-library-versions.outputs.websockets-version }}"
+        run: |
+          arduino-cli lib install "DoubleResetDetect@${VERSION_DOUBLERESETDETECT}"
+          arduino-cli lib install "WiFiManager@${VERSION_WIFIMANAGER}"
+          arduino-cli lib install "PubSubClient@${VERSION_PUBSUBCLIENT}"
+          arduino-cli lib install "ArduinoJson@${VERSION_ARDUINOJSON}"
+          arduino-cli lib install "DallasTemperature@${VERSION_DALLASTEMPERATURE}"
+          arduino-cli lib install "OneWire@${VERSION_ONEWIRE}"
+          if ! [ "$VERSION" \< "3.5" ]; then
+            arduino-cli lib install "RingBuffer@${VERSION_RINGBUFFER}"
+            arduino-cli lib install "Adafruit NeoPixel@${VERSION_ADAFRUITNEOPIXEL}"
+          fi
+          arduino-cli lib install "WebSockets@${VERSION_WEBSOCKETS}"
+
+      - name: Checkout commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.find-version.outputs.commit }}
+
+      - name: Compile Sketch for esp8266
+        id: compile-esp8266
+        shell: bash
+        env:
+          VERSION: ${{ steps.find-version.outputs.version }}
+          VERSION_ARDUINO_CLI: ${{ steps.find-arduino-cli-version.outputs.arduino-cli-version }}
+          VERSION_ESP8266: ${{ steps.find-platform-versions.outputs.esp8266-version }}
+        run: |
+          set -o pipefail
+          cd HeishaMon
+          rm -f HeishaMon.ino.*.bin HeishaMon.ino.*.elf
+
+          arduino_cli_args=(compile --warnings=none --verbose)
+          if [ "$(echo "$VERSION_ARDUINO_CLI" | cut -d. -f1)" -ge "1" ] || [ "$(echo "$VERSION_ARDUINO_CLI" | cut -d. -f2)" -ge "11" ]; then
+            arduino_cli_args+=(--output-dir=.)
+          fi
+          if [ "$(echo "$VERSION_ARDUINO_CLI" | cut -d. -f1)" -ge "1" ] || [ "$(echo "$VERSION_ARDUINO_CLI" | cut -d. -f2)" -ge "19" ]; then
+            arduino_cli_args+=(--no-color)
+          fi
+          if ! [ "$VERSION_ESP8266" \< "3.0.0" ]; then
+            arduino_cli_args+=(--fqbn=esp8266:esp8266:d1_mini:xtal=160,vt=flash,ssl=basic,mmu=3216,non32xfer=fast,eesz=4M2M,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=921600)
+          else
+            arduino_cli_args+=(--fqbn=esp8266:esp8266:d1_mini:xtal=160,vt=flash,ssl=basic,eesz=4M2M,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=921600)
+          fi
+
+          arduino_cli_args+=(HeishaMon.ino)
+
+          start=$(date +%s)
+          arduino-cli "${arduino_cli_args[@]}" \
+            | tee build-esp8266.log
+          if [ $? -ne 0 ]; then
+            echo "esp8266 build failed" >&2
+            echo "## esp8266 build failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          end=$(date +%s)
+          echo "## esp8266 build succeeded" >> $GITHUB_STEP_SUMMARY
+          echo "Time: $((end-start)) seconds" >> $GITHUB_STEP_SUMMARY
+
+          # Rename binary
+          filename="HeishaMon_esp8266-${VERSION}.ino.bin"
+          mv HeishaMon.ino*.bin $filename
+          md5sum $filename > $filename.md5
+
+          echo "Size: $(stat -c%s $filename) bytes" >> $GITHUB_STEP_SUMMARY
+          echo "MD5: $(md5sum $filename | cut -d\  -f1)" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          tail -n+$(grep -nE "Used library|Using library" build-esp8266.log | head -n1 | cut -d: -f1) build-esp8266.log >> $GITHUB_STEP_SUMMARY
+
+      - name: Compile Sketch for esp32
+        id: compile-esp32
+        if: ${{ steps.find-version.outputs.version >= '3.5' }}
+        shell: bash
+        env:
+          VERSION: ${{ steps.find-version.outputs.version }}
+        run: |
+          set -o pipefail
+          cd HeishaMon
+          start=$(date +%s)
+          arduino-cli compile --output-dir . \
+            --fqbn=esp32:esp32:esp32s3:CDCOnBoot=cdc,PSRAM=enabled,PartitionScheme=min_spiffs \
+            --warnings=none \
+            --verbose \
+            --no-color \
+            HeishaMon.ino \
+            | tee build-esp32.log
+          if [ $? -ne 0 ]; then
+            echo "esp32 build failed" >&2
+            echo "## esp32 build failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          end=$(date +%s)
+          echo "## esp32 build succeeded" >> $GITHUB_STEP_SUMMARY
+          echo "Time: $((end-start)) seconds" >> $GITHUB_STEP_SUMMARY
+
+          # Rename binary
+          filename="HeishaMon_esp32-${VERSION}.ino.bin"
+          mv HeishaMon.ino.bin $filename
+          md5sum $filename > $filename.md5
+
+          echo "Size: $(stat -c%s $filename) bytes" >> $GITHUB_STEP_SUMMARY
+          echo "MD5: $(md5sum $filename | cut -d\  -f1)" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          tail -n+$(grep -n "Used library" build-esp32.log | cut -d: -f1) build-esp32.log >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload esp8266 artifact
+        if: ${{ steps.compile-esp8266.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: HeishaMon_esp8266-${{ steps.find-version.outputs.version }}.ino.bin
+          path: HeishaMon/HeishaMon_esp8266-*.ino.bin*
+
+      - name: Upload esp32 artifact
+        if: ${{ steps.compile-esp32.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: HeishaMon_esp32-${{ steps.find-version.outputs.version }}.ino.bin
+          path: HeishaMon/HeishaMon_esp32-*.ino.bin*
+
+      - name: Release body
+        id: release-body
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          VERSION: ${{ steps.find-version.outputs.version }}
+          COMMIT: ${{ steps.find-version.outputs.commit }}
+          ARDUINO_CLI_VERSION: ${{ steps.find-arduino-cli-version.outputs.arduino-cli-version }}
+          ESP8266_VERSION: ${{ steps.find-platform-versions.outputs.esp8266-version }}
+          ESP32_VERSION: ${{ steps.find-platform-versions.outputs.esp32-version }}
+          VERSION_DOUBLERESETDETECT: "${{ steps.find-library-versions.outputs.doublerseresetdetect-version }}"
+          VERSION_WIFIMANAGER: "${{ steps.find-library-versions.outputs.wifimanager-version }}"
+          VERSION_PUBSUBCLIENT: "${{ steps.find-library-versions.outputs.pubsubclient-version }}"
+          VERSION_ARDUINOJSON: "${{ steps.find-library-versions.outputs.arduinojson-version }}"
+          VERSION_DALLASTEMPERATURE: "${{ steps.find-library-versions.outputs.dallastemperature-version }}"
+          VERSION_ONEWIRE: "${{ steps.find-library-versions.outputs.onewire-version }}"
+          VERSION_RINGBUFFER: "${{ steps.find-library-versions.outputs.ringbuffer-version }}"
+          VERSION_ADAFRUITNEOPIXEL: "${{ steps.find-library-versions.outputs.adafruitneopixel-version }}"
+          VERSION_WEBSOCKETS: "${{ steps.find-library-versions.outputs.websockets-version }}"
+        run: |
+          set -euo pipefail
+
+          cd HeishaMon
+          if [ ! -f build-esp8266.log ]; then
+            echo "build-esp8266.log not found" >&2
+            exit 1
+          fi
+
+          echo "This is a backfill release for $VERSION" > release-body.md
+          echo >> release-body.md
+          echo "The release is built from the following commit: [$COMMIT](https://github.com/${GITHUB_REPOSITORY}/commit/${COMMIT})" >> release-body.md
+          echo >> release-body.md
+          echo "The release is built with the following versions:" >> release-body.md
+          echo "- Arduino CLI: $ARDUINO_CLI_VERSION" >> release-body.md
+          echo "- ESP8266: $ESP8266_VERSION" >> release-body.md
+          if ! [ "$VERSION" \< "3.5" ]; then
+            echo "- ESP32: $ESP32_VERSION" >> release-body.md
+          fi
+          echo >> release-body.md
+          echo "The release is built with the following libraries:" >> release-body.md
+          if grep -q DoubleResetDetect build-esp8266.log; then
+            echo "- DoubleResetDetect: $VERSION_DOUBLERESETDETECT" >> release-body.md
+          fi
+          if grep -q WiFiManager build-esp8266.log; then
+            echo "- WiFiManager: $VERSION_WIFIMANAGER" >> release-body.md
+          fi
+          if grep -q PubSubClient build-esp8266.log; then
+            echo "- PubSubClient: $VERSION_PUBSUBCLIENT" >> release-body.md
+          fi
+          if grep -q ArduinoJson build-esp8266.log; then
+            echo "- ArduinoJson: $VERSION_ARDUINOJSON" >> release-body.md
+          fi
+          if grep -q DallasTemperature build-esp8266.log; then
+            echo "- DallasTemperature: $VERSION_DALLASTEMPERATURE" >> release-body.md
+          fi
+          if grep -q OneWire build-esp8266.log; then
+            echo "- OneWire: $VERSION_ONEWIRE" >> release-body.md
+          fi
+          if [ -f build-esp32.log ] && grep -q RingBuffer build-esp32.log; then
+            echo "- RingBuffer: $VERSION_RINGBUFFER" >> release-body.md
+          fi
+          if [ -f build-esp32.log ] && grep -q Adafruit NeoPixel build-esp32.log; then
+            echo "- Adafruit NeoPixel: $VERSION_ADAFRUITNEOPIXEL" >> release-body.md
+          fi
+          if grep -q WebSockets build-esp8266.log; then
+            echo "- WebSockets: $VERSION_WEBSOCKETS" >> release-body.md
+          fi
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: HeishaMon/release-body.md
+          prerelease: ${{ contains(steps.find-version.outputs.version, '-') }}
+          files: |
+            HeishaMon/HeishaMon_*.ino.bin*
+            HeishaMon/build-*.log
+          tag_name: v${{ steps.find-version.outputs.version }}
+          fail_on_unmatched_files: true
+          target_commitish: ${{ steps.find-version.outputs.commit }}
+          make_latest: false
